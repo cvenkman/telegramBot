@@ -1,5 +1,5 @@
 package configs
 
-type Conf struct {
+// type Conf struct {
 	 
-}
+// }

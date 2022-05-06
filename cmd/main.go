@@ -2,42 +2,60 @@ package main
 
 import (
 	"log"
-
-	// "bytes"
-	// "image"
-	// "image/color"
-	// "image/draw"
-	// "image/jpeg"
 	"os"
-
-	// "github.com/cvenkman/telegramBot/internal/server"
-
-	// "github.com/davecgh/go-spew/spew"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	telegram "github.com/cvenkman/telegramBot/pkg/telegram"
+	tgbotAPI "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/cvenkman/telegramBot/pkg/telegram"
 	"github.com/boltdb/bolt"
+	"github.com/cvenkman/telegramBot/pkg/storage"
+	"github.com/cvenkman/telegramBot/pkg/storage/boltDB"
 )
 
-func main() {
-	// var myBot telegram.Bot
+/*
+	TODO
+	разделить main на функции
+*/
 
-    bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
+func main() {
+	/* настройка tgbotAPI */
+    bot, err := tgbotAPI.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
     if err != nil {
         log.Fatal(err)
     }
-
 	bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	myBot := telegram.NewBot(bot)
 
+
+	/* создаем базу данных */
 	db, err := bolt.Open("bot.db", 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	
-	
+	tokenStorage := boltDB.NewTokenStorage(db)
+
+	/* проверка что бакеты созданы */
+	err = db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(storage.AccessTokens))
+		if err != nil {
+			return err
+		}
+		_, err = tx.CreateBucketIfNotExists([]byte(storage.RequestTokens))
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+
+
+	/* создаем бота */
+	myBot := telegram.NewBot(bot, tokenStorage)
+
+	/* запускаем бота */
 	err = myBot.Run()
 	if err != nil {
 		log.Fatal(err)

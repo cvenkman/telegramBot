@@ -1,45 +1,93 @@
 package models
 
+/* interaction (models) with json */
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+type ToUnmarshal interface {
+	Unmarshal(data []byte) (string, error)
+}
+
+type CatURL []struct {
+	URL string `json:"url"`
+}
+
+type DogURL struct {
+	URL string `json:"url"`
+}
+
+type FoxURL struct {
+	URL string `json:"image"`
+}
+
+func (c CatURL) Unmarshal(data []byte) (string, error) {
+	var updatesResponse CatURL
+	err := json.Unmarshal(data, &updatesResponse)
+	if err != nil {
+		return "", err
+	}
+
+	return updatesResponse[0].URL, nil
+}
+
+func (c DogURL) Unmarshal(data []byte) (string, error) {
+	var updatesResponse DogURL
+	err := json.Unmarshal(data, &updatesResponse)
+	if err != nil {
+		return "", err
+	}
+
+	return updatesResponse.URL, nil
+}
+
+func (c FoxURL) Unmarshal(data []byte) (string, error) {
+	fmt.Println("--- ")
+	var updatesResponse FoxURL
+	err := json.Unmarshal(data, &updatesResponse)
+	fmt.Println("--- ", updatesResponse.URL)
+	if err != nil {
+		return "", err
+	}
+
+	return updatesResponse.URL, nil
+}
+
+
+
+
+
+
 /***** get ******/
 
-type Response struct {
-	Ok bool			`json:"ok"`
-	Updates []Update	`json:"result"`
-}
+// type Response struct {
+// 	Ok bool			`json:"ok"`
+// 	Updates []Update	`json:"result"`
+// }
 
-type Update struct {
-	UpdateID int	`json:"update_id"`
-	Message Message `json:"message"`
-}
+// type Update struct {
+// 	UpdateID int	`json:"update_id"`
+// 	Message Message `json:"message"`
+// }
 
-type Message struct {
-	Chat Chat		`json:"chat"`
-	Text string		`json:"text"`
-}
+// type Message struct {
+// 	Chat Chat		`json:"chat"`
+// 	Text string		`json:"text"`
+// }
 
-type Chat struct {
-	ID int			`json:"id"`
-	Username string	`json:"username"`
-}
+// type Chat struct {
+// 	ID int			`json:"id"`
+// 	Username string	`json:"username"`
+// }
 
+// /***** send ******/
 
-/***** send ******/
-
-type BotMessage struct {
-	ChatID int		`json:"chat_id"`
-	Text string		`json:"text"`
-}
-
-
-
-
-
-
-
-
-
-
-
+// type BotMessage struct {
+// 	ChatID int		`json:"chat_id"`
+// 	Text string		`json:"text"`
+// }
 
 /*
 response json example

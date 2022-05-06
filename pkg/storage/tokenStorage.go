@@ -7,7 +7,7 @@ const (
 	RequestTokens Bucket = "request_tokens"
 )
 
-type TokenStorage interface {
+type ITokenStorage interface {
 	Save(chatID int64, token string, bucket Bucket) error
 	Get(chatID int64, bucket Bucket) (string, error)
 }
