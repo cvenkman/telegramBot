@@ -1,12 +1,14 @@
 package telegram
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 
 	"github.com/cvenkman/telegramBot/internal/telegram/models"
+	"github.com/cvenkman/telegramBot/internal/youtube/youtube"
 	"github.com/cvenkman/telegramBot/pkg/storage"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -24,7 +26,7 @@ func (b *Bot) HandleCommand(message *tgbotapi.Message) {
 	case "start":
 		msg.Text = "ты гей?"
 	case "cat", "dog", "fox":
-		msg.Text = b.HandlePhotoCommands(message.Command())
+		msg.Text = b.handlePhotoCommands(message.Command())
 	default:
 		msg.Text = "I don't know that command"
 	}
@@ -33,7 +35,7 @@ func (b *Bot) HandleCommand(message *tgbotapi.Message) {
 	}
 }
 
-func (b *Bot) HandlePhotoCommands(command string) string {
+func (b *Bot) handlePhotoCommands(command string) string {
 	var str string
 	var err error
 
@@ -75,8 +77,11 @@ var numericKeyboard = tgbotapi.NewReplyKeyboard(
 // 	}
 // }
 
+
+//UC5A-Wp9ujcr5g9sYagAafEA
 func (b *Bot) HandleMessage(message *tgbotapi.Message) {
 	msg := tgbotapi.NewMessage(message.Chat.ID, "")
+	var err error
 
 	if strings.Contains(message.Text, "спасибо") {
 		msg.Text = "обращайся)"
@@ -88,14 +93,21 @@ func (b *Bot) HandleMessage(message *tgbotapi.Message) {
 		msg.Text = "saved"
 	} else {
 		switch message.Text {
+		case "video":
+			msg.Text, err = youtube.GetLastVideo("https://www.youtube.com/channel/UCpOH8JsphMAVN7yTqJPQDew")
+			fmt.Println("--------- ", msg.Text)
+			if err != nil {
+				fmt.Println("---------1 ", err)
+				log.Println(err)
+			}
 		case "get":
 			msg.Text, _ = b.tokenStorage.Get(message.Chat.ID, storage.AccessTokens)
 		case "cat", "кот", "Cat", "Кот":
-			msg.Text = b.HandlePhotoCommands("cat")
+			msg.Text = b.handlePhotoCommands("cat")
 		case "dog", "Dog", "Собака", "собака":
-			msg.Text = b.HandlePhotoCommands("dog")
+			msg.Text = b.handlePhotoCommands("dog")
 		case "fox", "Fox", "лиса", "Лиса":
-			msg.Text = b.HandlePhotoCommands("fox")
+			msg.Text = b.handlePhotoCommands("fox")
 		case "keyboard", "Keyboard":
 			msg.ReplyMarkup = numericKeyboard
 		case "close", "Close":

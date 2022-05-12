@@ -19,7 +19,7 @@ func main() {
 	/* настройка tgbotAPI */
     bot, err := tgbotAPI.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("fatal error: telegram api token")
     }
 	bot.Debug = true
 	log.Printf("Authorized on account %s", bot.Self.UserName)
