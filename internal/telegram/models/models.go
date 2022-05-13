@@ -1,7 +1,5 @@
 package models
 
-/* interaction (models) with json */
-
 import (
 	"encoding/json"
 	"fmt"

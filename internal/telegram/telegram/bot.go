@@ -1,7 +1,6 @@
 package telegram
 
 import (
-    "fmt"
     "github.com/cvenkman/telegramBot/pkg/storage"
 	tgbotAPI "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -30,7 +29,6 @@ func (b *Bot) Run() error {
         } else {
 			b.HandleMessage(update.Message)
 		}
-		fmt.Println(update.Message.Text)
     }
 	return nil
 }

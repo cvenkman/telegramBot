@@ -1,7 +1,6 @@
 package telegram
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -18,17 +17,24 @@ func (b *Bot) HandleCommand(message *tgbotapi.Message) {
 
 	switch message.Command() {
 	case "help":
-		msg.Text = "I understand /sayhi, /status or /cat."
+		msg.Text = `I understand /sayhi, /cat, /dog and /fox commands.
+					You can also write animal (support only cat, dog and fox) to get a photo of this animal.
+
+					One more thing I can do: save smth (write save [your information]) and then get it (write get),
+					e.g., save hi, get.
+					
+					Then you can get the latest video from the YouTube channel (but url must contains channel id),
+					e.g, video https://www.youtube.com/channel/UC5A-Wp9ujcr5g9sYagAafEA`
+
 	case "sayhi":
 		msg.Text = "Hi :)"
-	case "status":
-		msg.Text = "I'm ok."
 	case "start":
-		msg.Text = "ты гей?"
+		msg.Text = "Hi! Write /help to see a list of commands"
 	case "cat", "dog", "fox":
 		msg.Text = b.handlePhotoCommands(message.Command())
 	default:
-		msg.Text = "I don't know that command"
+		msg.Text = `I don't know that command
+					/help`
 	}
 	if _, err := b.bot.Send(msg); err != nil {
 		log.Println(err)
@@ -36,30 +42,25 @@ func (b *Bot) HandleCommand(message *tgbotapi.Message) {
 }
 
 func (b *Bot) handlePhotoCommands(command string) string {
-	var str string
+	var msg string
 	var err error
 
 	switch command {
 	case "cat":
 		var d models.CatURL
-		str, err = getImageURL("https://api.thecatapi.com/v1/images/search", d)
-		if err != nil {
-			log.Println(err)
-		}
+		msg, err = getImageURL("https://api.thecatapi.com/v1/images/search", d)
 	case "dog":
 		var f models.DogURL
-		str, err = getImageURL("https://random.dog/woof.json", f)
-		if err != nil {
-			log.Println(err)
-		}
+		msg, err = getImageURL("https://random.dog/woof.json", f)
 	case "fox":
 		var f models.FoxURL
-		str, err = getImageURL("https://randomfox.ca/floof/", f)
-		if err != nil {
-			log.Println(err)
-		}
+		msg, err = getImageURL("https://randomfox.ca/floof/", f)
 	}
-	return str
+	if err != nil {
+		log.Println(err)
+		msg = "server error: can't get image"
+	}
+	return msg
 }
 
 var numericKeyboard = tgbotapi.NewReplyKeyboard(
@@ -70,36 +71,30 @@ var numericKeyboard = tgbotapi.NewReplyKeyboard(
 	),
 )
 
-// func (b *Bot) HandleHiMessage(message *tgbotapi.Message) {
-// 	msg := tgbotapi.NewMessage(message.Chat.ID, "Привет")
-// 	if _, err := b.Bot.Send(msg); err != nil {
-// 		log.Println(err)
-// 	}
-// }
-
-
-//UC5A-Wp9ujcr5g9sYagAafEA
 func (b *Bot) HandleMessage(message *tgbotapi.Message) {
 	msg := tgbotapi.NewMessage(message.Chat.ID, "")
 	var err error
 
 	if strings.Contains(message.Text, "спасибо") {
 		msg.Text = "обращайся)"
-	} else if (strings.Contains(message.Text, "Link")) {
+	} else if strings.Contains(message.Text, "Save") || strings.Contains(message.Text, "save"){
 		err := b.tokenStorage.Save(message.Chat.ID, message.Text, storage.AccessTokens)
 		if err != nil {
 			log.Println(err)
+			msg.Text = "server error: can't save"
 		}
 		msg.Text = "saved"
+	} else if strings.Contains(message.Text, "Video") || strings.Contains(message.Text, "video") {
+		channelURL := strings.Trim(message.Text, " \t")
+		channelURL = channelURL[5:]
+
+		msg.Text, err = youtube.GetLastVideo(channelURL)
+		if err != nil {
+			log.Println(err)
+			msg.Text = "not valid URL or maybe my bad"
+		}
 	} else {
 		switch message.Text {
-		case "video":
-			msg.Text, err = youtube.GetLastVideo("https://www.youtube.com/channel/UCpOH8JsphMAVN7yTqJPQDew")
-			fmt.Println("--------- ", msg.Text)
-			if err != nil {
-				fmt.Println("---------1 ", err)
-				log.Println(err)
-			}
 		case "get":
 			msg.Text, _ = b.tokenStorage.Get(message.Chat.ID, storage.AccessTokens)
 		case "cat", "кот", "Cat", "Кот":
@@ -113,7 +108,7 @@ func (b *Bot) HandleMessage(message *tgbotapi.Message) {
 		case "close", "Close":
 			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 		default:
-			msg.Text = "Ну и что это?"
+			msg.Text = "I don't know this :( /help"
 		}
 	}
 
@@ -129,7 +124,7 @@ func getImageURL(url string, s models.ToUnmarshal) (string, error) {
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body) // FIXME deprecated
+	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return "", err
 	}

@@ -12,11 +12,6 @@ type IDInfo struct {
 	VideoId string	`json:"videoId"`
 }
 
-//AIzaSyDYwSFljK3Qu2t6zeMZB-kFM-M7DT9FXlo
-
-
-
-
 /* json response example from youtube api
 {
 	"items": [
