@@ -1,7 +1,6 @@
+Бот может присылать фото кошек собак и лис, работать с базой данных, через YouTube api присылать последнее видео каналов.
 
 ![bot](https://github.com/cvenkman/telegramBot/raw/master/bot.png)
-
-
 
 структура проекта
 
