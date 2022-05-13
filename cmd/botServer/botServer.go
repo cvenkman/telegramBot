@@ -8,7 +8,15 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/cvenkman/telegramBot/pkg/storage"
 	"github.com/cvenkman/telegramBot/pkg/storage/boltDB"
+	// "flag"
+	// "github.com/BurntSushi/toml"
 )
+
+var configPath string
+
+// func init() {
+// 	flag.StringVar(&configPath, "config-path", "configs/config.toml", "path to config file")
+// }
 
 func main() {
 	/* set up tgbotAPI */
